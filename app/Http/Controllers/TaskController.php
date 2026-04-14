@@ -17,7 +17,7 @@ class TaskController extends Controller
             ->when($request->priority, fn($q) => $q->where('priority', $request->priority))
             ->when($request->date_from, fn($q) => $q->whereDate('due_date', '>=', $request->date_from))
             ->when($request->date_to, fn($q) => $q->whereDate('due_date', '<=', $request->date_to))
-            ->latest()
+            ->orderBy('due_date', 'asc')
             ->paginate(10)
             ->withQueryString();
 
@@ -44,5 +44,11 @@ class TaskController extends Controller
     {
         $task->update($request->validated());
         return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
+    }
+
+    public function softDelete(Task $task)
+    {
+        $task->delete();
+        return redirect()->route('tasks.index')->with('success', 'Task deleted successfully.');
     }
 }
