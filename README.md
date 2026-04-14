@@ -1,58 +1,161 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Task Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+> A lightweight task management system built with Laravel 11 and Bootstrap 5, designed to help teams organize and track their daily work.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Table of Contents
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- [Technologies](#technologies)
+- [Getting Started](#getting-started)
+- [Environment Configuration](#environment-configuration)
+- [Database](#database)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Assumptions & Decisions](#assumptions--decisions)
+- [Testing](#testing)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## Technologies
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+- **Backend:** PHP 8.x, Laravel 11
+- **Frontend:** Blade Templates, Bootstrap 5.3, Bootstrap Icons 1.11
+- **Database:** MySQL with Eloquent ORM (SoftDeletes)
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Getting Started
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clone the repository
+git clone <repository-url>
+cd task_management_system_Qtec
 
-php artisan boost:install
+# 2. Install PHP dependencies
+composer install
+
+# 3. Copy environment file and generate app key
+cp .env.example .env
+php artisan key:generate
+
+# 4. Run database migrations
+php artisan migrate
+
+# 5. Start the development server
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+App will be available at **http://127.0.0.1:8000/tasks**
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Environment Configuration
 
-## Code of Conduct
+Update the following in your `.env` file:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=task_management_system_db
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Database
 
-## License
+### `tasks` table
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Column      | Type         | Description                         |
+|-------------|--------------|-------------------------------------|
+| id          | bigint       | Primary key                         |
+| title       | varchar(100) | Required                            |
+| description | text         | Optional                            |
+| status      | enum         | pending, in_progress, completed     |
+| priority    | enum         | low, medium, high                   |
+| due_date    | date         | Optional, must be today or future   |
+| created_at  | timestamp    | Auto-managed                        |
+| updated_at  | timestamp    | Auto-managed                        |
+| deleted_at  | timestamp    | Soft delete timestamp               |
+
+**Indexes:** `status`, `priority`, `due_date`, `(status, priority)`
+
+---
+
+## Features
+
+- **Create** tasks with title, description, status, priority, and due date
+- **Edit** tasks via a centered Bootstrap modal with AJAX data fetch
+- **Soft Delete** tasks — records are retained in the database via `deleted_at`
+- **Filter** tasks by title, status, priority, and due date range (from / to)
+- **Pagination** — 10 tasks per page with active filter state preserved
+- **Validation** — server-side via `StoreTaskRequest` and `UpdateTaskRequest`
+- **Toast Notifications** — on create, update, and delete actions
+
+---
+
+## Project Structure
+
+```
+app/
+├── Http/
+│   ├── Controllers/
+│   │   └── TaskController.php
+│   └── Requests/
+│       ├── StoreTaskRequest.php
+│       └── UpdateTaskRequest.php
+├── Models/
+│   └── Task.php
+database/
+└── migrations/
+    ├── 2026_04_14_000001_create_tasks_table.php
+    └── 2026_04_14_103207_add_soft_deletes_to_tasks_table.php
+resources/
+└── views/
+    ├── layouts/
+    │   └── app.blade.php
+    └── tasks/
+        ├── index.blade.php
+        └── create.blade.php
+routes/
+└── web.php
+```
+
+---
+
+## Assumptions & Decisions
+
+| Decision | Reason |
+|----------|--------|
+| No authentication | The brief did not require user login; designed as a single-team tool |
+| Soft deletes | Preserves data integrity; allows future restore functionality |
+| Edit via modal | Avoids full page reload; improves UX with lightweight AJAX fetch |
+| Due date validation | Blocked at browser level (`min` attribute) and server-side (`after_or_equal:today`) |
+| Form Requests | Keeps controller clean with separated validation logic |
+| Bootstrap via CDN | Eliminates Node.js build step for simpler setup |
+
+---
+
+## Testing
+
+Automated tests are not included in this version. Manual testing was performed covering:
+
+- Task creation with valid and invalid inputs
+- Inline validation error messages
+- Edit modal populating correct task data via AJAX
+- Soft delete removing task from list without database deletion
+- Filters working individually and in combination
+- Pagination preserving active filter state
+
+**Recommended automated test approach:**
+
+```bash
+# Run tests
+php artisan test
+```
+
+- **Feature tests** — use `RefreshDatabase` to test HTTP responses for each route
+- **Unit tests** — cover any custom business logic in the `Task` model
